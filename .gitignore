@@ -1,0 +1,7 @@
+*.idea
+*__pycache__*
+*.pyc
+*.npy
+*.wav
+data/
+.ipynb_checkpoints/
