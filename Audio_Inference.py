@@ -2,11 +2,8 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-import torch.optim as optim
-from PIL import Image
 
-
-# Try to train a CNN classifier.
+# Use trained neural network.
 conv_last_out_channels = 8
 conv_first_out_channels = 16
 fc1_out = 256
@@ -15,9 +12,6 @@ fc2_out = 32
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # self.conv1 = nn.Conv2d(1, 4, 3)
-        # self.pool1 = nn.MaxPool2d(4, 4)
-        # self.conv2 = nn.Conv2d(4, 16, 5)
         self.conv2 = nn.Conv2d(1, conv_first_out_channels, 5)
         self.pool2 = nn.MaxPool2d(2, 2)
         self.conv3 = nn.Conv2d(conv_first_out_channels, conv_last_out_channels, 5, stride=2)
@@ -28,7 +22,6 @@ class Net(nn.Module):
         self.fc3 = nn.Linear(fc2_out, 2)
 
     def forward(self, x):
-        # x = self.pool1(F.relu(self.conv1(x)))
         x = self.pool2(F.relu(self.conv2(x)))
         x = self.pool3(F.relu(self.conv3(x)))
         x = x.view(-1, conv_last_out_channels*16*16)
@@ -57,6 +50,8 @@ for k in range(N):
 test_labels = np.load('test_labels.npy')
 test_labels_tensor = torch.from_numpy(test_labels)
 
+
+# Perform prediction
 pred_outputs = net(test_data_tensor)
 val_loss = criterion(pred_outputs, test_labels_tensor.long()).item()
 _, all_predictions = torch.max(pred_outputs.data, 1)
