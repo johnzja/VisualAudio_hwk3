@@ -6,3 +6,4 @@
 *.pth
 data/
 .ipynb_checkpoints/
+out/

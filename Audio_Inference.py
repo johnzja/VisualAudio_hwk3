@@ -42,7 +42,8 @@ N_pos = 100; N_neg = 100; N = 100
 batch_size = 5
 size_input = 138
 
-test_data = np.load('test_data.npy')
+
+test_data = np.load('test_data.npy')                            # Load 100 spectrograms on the test set.
 test_data_tensor = torch.Tensor(N, 1, size_input, size_input)
 for k in range(N):
     test_data_tensor[k, 0, :, :] = torch.from_numpy(test_data[k, :, :])
@@ -57,4 +58,8 @@ val_loss = criterion(pred_outputs, test_labels_tensor.long()).item()
 _, all_predictions = torch.max(pred_outputs.data, 1)
 correct = (all_predictions == test_labels_tensor).sum().item()
 print('Test loss: %.4f Correct: %d in 100' % (val_loss, correct))
+
+# Final stuff: Generate C.npy.
+Classification_Results = all_predictions.numpy()
+np.save('out/C.npy', Classification_Results)
 

@@ -1,0 +1,6 @@
+cv2
+pylab
+matplotlib
+PIL
+numpy
+torch
