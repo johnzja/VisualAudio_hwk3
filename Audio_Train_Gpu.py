@@ -5,6 +5,7 @@ import torch
 import torchvision
 import torch.optim as optim
 from PIL import Image
+import matplotlib.pyplot as plt
 
 accuracy_target = 88
 
@@ -101,8 +102,17 @@ test_labels_tensor = torch.from_numpy(test_labels).to(device)
 
 # disp_spect(train_data[0,:,:])
 # disp_spect(train_data[1,:,:])
+train_loss_curve = np.ndarray((epochs, ))
+test_loss_curve = np.ndarray((epochs, ))
+val_loss_curve = np.ndarray((epochs, ))
+
+train_acc_curve = np.ndarray((epochs, ))
+test_acc_curve = np.ndarray((epochs, ))
+val_acc_curve = np.ndarray((epochs, ))
+
 
 flag = True
+record_losses = True
 while flag:
     net = Net().to(device)
     criterion = nn.CrossEntropyLoss().to(device)
@@ -135,18 +145,32 @@ while flag:
 
             # print('Finished Training for %d batch. Loss = %.4f' % (batch_iter, running_loss))
 
-        # Start calculating Accuracy.
+        # Start calculating Accuracies.
+        pred_outputs = net(train_data_tensor)
+        val_loss = criterion(pred_outputs, train_labels_tensor.long()).item()
+        _, all_predictions = torch.max(pred_outputs.data, 1)
+        correct = (all_predictions == train_labels_tensor).sum().item()
+        print('Train loss: %.4f Correct: %d in %d' % (val_loss, correct, train_data_num))
+        train_loss_curve[epoch] = val_loss
+        train_acc_curve[epoch] = correct
+
         pred_outputs = net(validate_data_tensor)
         val_loss = criterion(pred_outputs, validate_labels_tensor.long()).item()
         _, all_predictions = torch.max(pred_outputs.data, 1)
         correct = (all_predictions == validate_labels_tensor).sum().item()
-        print('Val loss: %.4f Correct: %d in 20' % (val_loss, correct))
+        print('Val loss: %.4f Correct: %d in %d' % (val_loss, correct, 200-train_data_num))
+        val_loss_curve[epoch] = val_loss
+        val_acc_curve[epoch] = correct
 
         pred_outputs = net(test_data_tensor)
         val_loss = criterion(pred_outputs, test_labels_tensor.long()).item()
         _, all_predictions = torch.max(pred_outputs.data, 1)
         correct = (all_predictions == test_labels_tensor).sum().item()
         print('Test loss: %.4f Correct: %d in 100' % (val_loss, correct))
+        test_loss_curve[epoch] = val_loss
+        test_acc_curve[epoch] = correct
+
+        # Record typical training curve: Complete
 
         if correct >= accuracy_target:
             # cpu_device = torch.device('cpu')
@@ -154,5 +178,11 @@ while flag:
             torch.save(net.state_dict(), file_name)
             flag = False
             break
+        elif record_losses:
+            if epoch == epochs - 1:
+                flag = False
+                break
 
+np.save('loss_curves.npy', (train_loss_curve, val_loss_curve, test_loss_curve), allow_pickle=True)
+np.save('acc_curves.npy', (train_acc_curve, val_acc_curve, test_acc_curve), allow_pickle=True)
 print('Complete. Target accuracy %d reached.' % accuracy_target)
